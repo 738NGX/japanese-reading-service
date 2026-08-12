@@ -134,7 +134,7 @@ function boundaryPrior(
   previousReading: string,
   currentReading: string,
   previousOriginalChar: string,
-  _currentOriginalChar: string,
+  currentOriginalChar: string,
   kind: 'voiced' | 'semi-voiced',
 ): { priority: number; tags: string[] } {
   let priority = 0;
