@@ -1,4 +1,4 @@
-import rankerWeights from '@/data/japanese-reading/ranker-weights.json';
+import rankerWeights from '../../data/japanese-reading/ranker-weights.json';
 import type { ReadingCombinationCandidate } from './types';
 
 type RankerModel = {

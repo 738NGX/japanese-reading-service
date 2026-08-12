@@ -1,7 +1,7 @@
 import { Converter } from 'opencc-js';
-import kanjiReadings from '@/data/japanese-reading/kanji-readings.json';
-import jmnedictPlaceReadings from '@/data/japanese-reading/jmnedict-place-readings.json';
-import wordReadings from '@/data/japanese-reading/word-readings.json';
+import kanjiReadings from '../../data/japanese-reading/kanji-readings.json';
+import jmnedictPlaceReadings from '../../data/japanese-reading/jmnedict-place-readings.json';
+import wordReadings from '../../data/japanese-reading/word-readings.json';
 import { kanaToRomaji } from './romanize';
 import type {
   CharacterReadingResult,
