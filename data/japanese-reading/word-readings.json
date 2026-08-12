@@ -1,0 +1,198 @@
+{
+  "南京": [
+    {
+      "reading": "ナンキン",
+      "kanaType": "katakana",
+      "type": "place",
+      "label": "中国地名惯用读法",
+      "priority": 100,
+      "source": "curated"
+    }
+  ],
+  "北京": [
+    {
+      "reading": "ペキン",
+      "kanaType": "katakana",
+      "type": "place",
+      "label": "中国地名惯用读法",
+      "priority": 100,
+      "source": "curated"
+    }
+  ],
+  "上海": [
+    {
+      "reading": "シャンハイ",
+      "kanaType": "katakana",
+      "type": "place",
+      "label": "中国地名惯用读法",
+      "priority": 100,
+      "source": "curated"
+    }
+  ],
+  "杭州": [
+    {
+      "reading": "コウシュウ",
+      "kanaType": "katakana",
+      "type": "place",
+      "label": "中国地名惯用读法",
+      "priority": 95,
+      "source": "curated"
+    }
+  ],
+  "広州": [
+    {
+      "reading": "コウシュウ",
+      "kanaType": "katakana",
+      "type": "place",
+      "label": "中国地名惯用读法",
+      "priority": 95,
+      "source": "curated"
+    }
+  ],
+  "廣州": [
+    {
+      "reading": "コウシュウ",
+      "kanaType": "katakana",
+      "type": "place",
+      "label": "中国地名惯用读法",
+      "priority": 95,
+      "source": "curated"
+    }
+  ],
+  "東京": [
+    {
+      "reading": "とうきょう",
+      "kanaType": "hiragana",
+      "type": "place",
+      "label": "日本地名惯用读法",
+      "priority": 100,
+      "source": "curated"
+    }
+  ],
+  "大阪": [
+    {
+      "reading": "おおさか",
+      "kanaType": "hiragana",
+      "type": "place",
+      "label": "日本地名惯用读法",
+      "priority": 100,
+      "source": "curated"
+    }
+  ],
+  "京都": [
+    {
+      "reading": "きょうと",
+      "kanaType": "hiragana",
+      "type": "place",
+      "label": "日本地名惯用读法",
+      "priority": 100,
+      "source": "curated"
+    }
+  ],
+  "日本橋": [
+    {
+      "reading": "にほんばし",
+      "kanaType": "hiragana",
+      "type": "place",
+      "label": "日本地名候选",
+      "priority": 100,
+      "source": "curated"
+    },
+    {
+      "reading": "にっぽんばし",
+      "kanaType": "hiragana",
+      "type": "place",
+      "label": "日本地名候选",
+      "priority": 98,
+      "source": "curated"
+    }
+  ],
+  "白川": [
+    {
+      "reading": "しらかわ",
+      "kanaType": "hiragana",
+      "type": "place",
+      "label": "日本地名 / 姓氏候选",
+      "priority": 95,
+      "source": "curated"
+    }
+  ],
+  "高山": [
+    {
+      "reading": "たかやま",
+      "kanaType": "hiragana",
+      "type": "place",
+      "label": "日本地名 / 姓氏候选",
+      "priority": 95,
+      "source": "curated"
+    }
+  ],
+  "青島": [
+    {
+      "reading": "あおしま",
+      "kanaType": "hiragana",
+      "type": "place",
+      "label": "日本地名 / 姓氏候选",
+      "priority": 90,
+      "source": "curated"
+    },
+    {
+      "reading": "チンタオ",
+      "kanaType": "katakana",
+      "type": "place",
+      "label": "中国地名惯用读法",
+      "priority": 90,
+      "source": "curated"
+    }
+  ],
+  "青岛": [
+    {
+      "reading": "チンタオ",
+      "kanaType": "katakana",
+      "type": "place",
+      "label": "中国地名惯用读法",
+      "priority": 90,
+      "source": "curated"
+    }
+  ],
+  "龍門": [
+    {
+      "reading": "りゅうもん",
+      "kanaType": "hiragana",
+      "type": "place",
+      "label": "音读惯用候选",
+      "priority": 80,
+      "source": "curated"
+    }
+  ],
+  "龙门": [
+    {
+      "reading": "りゅうもん",
+      "kanaType": "hiragana",
+      "type": "place",
+      "label": "音读惯用候选",
+      "priority": 80,
+      "source": "curated"
+    }
+  ],
+  "李白": [
+    {
+      "reading": "りはく",
+      "kanaType": "hiragana",
+      "type": "person",
+      "label": "汉诗人名惯用读法",
+      "priority": 100,
+      "source": "curated"
+    }
+  ],
+  "王安石": [
+    {
+      "reading": "おうあんせき",
+      "kanaType": "hiragana",
+      "type": "person",
+      "label": "汉诗文人名惯用读法",
+      "priority": 95,
+      "source": "curated"
+    }
+  ]
+}
