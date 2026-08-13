@@ -8,7 +8,7 @@ function convertApi(): Plugin {
   return {
     name: 'convert-api',
     configureServer(server) {
-      server.middlewares.use('/api/convert', (request, response, next) => {
+      server.middlewares.use('/japanese-reading-service/api/convert', (request, response, next) => {
         if (request.method !== 'GET') return next();
         const apiResponse = createApiResponse(request.url ?? '/api/convert');
         response.statusCode = apiResponse.status;
@@ -23,6 +23,7 @@ function convertApi(): Plugin {
 const root = path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
+  base: '/japanese-reading-service/',
   plugins: [react(), convertApi()],
   resolve: { alias: { '@': root } },
   build: { target: 'node20' },

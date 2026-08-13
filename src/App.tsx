@@ -22,7 +22,7 @@ export default function App() {
     event.preventDefault();
     setLoading(true); setError('');
     try {
-      const response = await fetch(`/api/convert?q=${encodeURIComponent(input)}&mode=${mode}`);
+      const response = await fetch(`${import.meta.env.BASE_URL}api/convert?q=${encodeURIComponent(input)}&mode=${mode}`);
       const body = await response.json() as ApiResult & { error?: string };
       if (!response.ok) throw new Error(body.error ?? '查询失败，请稍后重试。');
       setResult(body); setSelectedKeys({});
