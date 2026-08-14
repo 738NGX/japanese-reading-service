@@ -1,7 +1,7 @@
 import { Converter } from 'opencc-js';
+import { toHiragana } from 'wanakana';
 import kanjiReadings from '../../data/japanese-reading/kanji-readings.json';
 import jmnedictPlaceReadings from '../../data/japanese-reading/jmnedict-place-readings.json';
-import wordReadings from '../../data/japanese-reading/word-readings.json';
 import { kanaToRomaji } from './romanize';
 import type {
   CharacterReadingResult,
@@ -9,53 +9,37 @@ import type {
   KanjiReadingCandidate,
   KanjiReadingData,
   ReadingCombinationCandidate,
-  ReadingMode,
   ReadingType,
   WordReadingCandidate,
 } from './types';
 
 const KANJI_DATA = kanjiReadings as Record<string, KanjiReadingData>;
-const WORD_DATA = wordReadings as Record<string, Array<Omit<WordReadingCandidate, 'surface' | 'romaji'>>>;
 const JMNEDICT_PLACE_DATA = jmnedictPlaceReadings as Record<string, string[]>;
 const toJapaneseKanji = Converter({ from: 'cn', to: 'jp' });
 
 const TYPE_LABEL: Record<ReadingType, string> = {
-  on: '音读', kun: '训读', nanori: '名乘读', word: '整词', place: '地名',
-  person: '人名', custom: '补充词库', unknown: '未知',
+  on: '音读', kun: '训读', nanori: '名乘读', place: '地名', person: '人名', unknown: '未知',
 };
 
-function modeBoost(type: ReadingType, mode: ReadingMode): number {
-  if (mode === 'place') return type === 'place' || type === 'word' ? 20 : type === 'kun' ? 8 : 0;
-  if (mode === 'person') return type === 'person' || type === 'word' ? 20 : type === 'nanori' ? 12 : 0;
-  return 0;
-}
-
 function surfaceReading(reading: string): string {
-  return reading.replace(/[.-]/g, '');
+  return toHiragana(reading.replace(/[.-]/g, ''));
 }
 
-function createKanjiCandidates(kanji: string, data: KanjiReadingData, mode: ReadingMode): KanjiReadingCandidate[] {
-  const groups: Array<{ key: keyof KanjiReadingData; type: ReadingType; base: number }> = [
-    { key: 'on', type: 'on', base: 70 },
-    { key: 'kun', type: 'kun', base: 60 },
-    { key: 'nanori', type: 'nanori', base: 50 },
+function createKanjiCandidates(kanji: string, data: KanjiReadingData): KanjiReadingCandidate[] {
+  const groups: Array<{ key: keyof KanjiReadingData; type: ReadingType }> = [
+    { key: 'on', type: 'on' },
+    { key: 'kun', type: 'kun' },
+    { key: 'nanori', type: 'nanori' },
   ];
-  const frequencyBoost = data.frequency ? Math.max(0, 12 - Math.floor(data.frequency / 250)) : 0;
-  const candidates = groups.flatMap(({ key, type, base }) => {
+  let sourceIndex = 0;
+  const candidates = groups.flatMap(({ key, type }) => {
     const readings = Array.isArray(data[key]) ? data[key] as string[] : [];
     return readings.flatMap((reading, index) => {
       const full = surfaceReading(reading);
-      const variants = [{ reading, value: full, offset: 0, suffix: '' }];
-      if (type === 'kun' && reading.includes('.')) {
-        const stem = reading.split('.')[0].replace(/-/g, '');
-        if (stem && stem !== full) variants.push({ reading: stem, value: stem, offset: 6, suffix: '词干' });
-      }
-      return variants.map((variant) => ({
-        kanji, reading: variant.reading, surfaceReading: variant.value, type,
-        label: `${TYPE_LABEL[type]}${variant.suffix}`,
-        priority: base + modeBoost(type, mode) + frequencyBoost - index + variant.offset,
-        source: 'KANJIDIC2', romaji: kanaToRomaji(variant.value),
-      }));
+      return [{
+        kanji, reading, surfaceReading: full, type, label: TYPE_LABEL[type],
+        priority: -(sourceIndex += 1) - index, source: 'KANJIDIC2', romaji: kanaToRomaji(full),
+      }];
     });
   });
   const seen = new Set<string>();
@@ -64,7 +48,7 @@ function createKanjiCandidates(kanji: string, data: KanjiReadingData, mode: Read
     if (seen.has(key)) return false;
     seen.add(key);
     return true;
-  }).sort((left, right) => right.priority - left.priority);
+  });
 }
 
 export function normalizeInput(input: string): string {
@@ -76,54 +60,51 @@ export function toJapaneseForm(input: string): string {
   return toJapaneseKanji(normalizeInput(input));
 }
 
-export function lookupKanjiReadings(char: string, mode: ReadingMode = 'auto'): KanjiReadingCandidate[] {
+export function lookupKanjiReadings(char: string): KanjiReadingCandidate[] {
   if (!/[\u3400-\u9fff\uf900-\ufaff]/u.test(char)) return [];
   const data = KANJI_DATA[char];
-  return data ? createKanjiCandidates(char, data, mode) : [];
+  return data ? createKanjiCandidates(char, data) : [];
 }
 
-export function lookupWordReadings(input: string, japaneseForm: string, mode: ReadingMode = 'auto'): WordReadingCandidate[] {
-  const forms = [...new Set([input, japaneseForm])].filter(Boolean);
-  const candidates = forms.flatMap((surface) => {
-    const curated = WORD_DATA[surface] ?? [];
-    const places = (JMNEDICT_PLACE_DATA[surface] ?? []).map((reading) => ({
-      reading, kanaType: 'hiragana' as const, type: 'place' as const, label: 'JMnedict 地名', priority: 125, source: 'JMnedict',
-    }));
-    return [...places, ...curated].map((entry) => ({
-      ...entry, surface, priority: entry.priority + modeBoost(entry.type, mode), romaji: kanaToRomaji(entry.reading),
+export function lookupWordReadings(input: string, japaneseForm: string): WordReadingCandidate[] {
+  const forms = [{ surface: input, matchedForm: 'original' as const }];
+  if (japaneseForm !== input) forms.push({ surface: japaneseForm, matchedForm: 'japanese-normalized' });
+  const candidates = forms.flatMap(({ surface, matchedForm }) => {
+    return (JMNEDICT_PLACE_DATA[surface] ?? []).map((reading, index) => ({
+      surface, reading: toHiragana(reading), kanaType: 'hiragana' as const, type: 'place' as const,
+      label: 'JMnedict 地名', priority: -index, source: 'JMnedict', matchedForm, romaji: kanaToRomaji(reading),
     }));
   });
   const seen = new Set<string>();
   return candidates.filter((candidate) => {
-    const key = `${candidate.reading}:${candidate.label}`;
+    const key = `${candidate.matchedForm}:${candidate.reading}:${candidate.label}`;
     if (seen.has(key)) return false;
     seen.add(key);
     return true;
-  }).sort((left, right) => right.priority - left.priority);
+  });
 }
 
 export function createWordCombinationCandidates(
-  input: string,
   wordCandidates: WordReadingCandidate[],
 ): ReadingCombinationCandidate[] {
   return wordCandidates.map((candidate) => ({
     reading: candidate.reading, romaji: candidate.romaji ?? kanaToRomaji(candidate.reading), label: candidate.label,
-    priority: 1000 + candidate.priority, source: 'dictionary', notes: [`整词词典命中：${candidate.source ?? 'unknown'}`],
-    originalChars: Array.from(input), readingTypes: Array.from(input, () => candidate.type),
+    priority: 1000 + candidate.priority, source: 'dictionary', notes: [`词典表记：${candidate.surface}`, `整词词典命中：${candidate.source ?? 'unknown'}`],
+    evidence: candidate.matchedForm === 'japanese-normalized' ? 'dictionary-normalized' : 'dictionary-exact',
+    originalChars: Array.from(candidate.surface), readingTypes: Array.from(candidate.surface, () => candidate.type),
     displayReadings: [candidate.reading], surfaceReadings: [candidate.reading],
-    voicingPositions: [], voicedOriginalChars: [], semiVoicingPositions: [], priorFeatureTags: [],
-    selectedMatchCount: 0, manualSelectedMatchCount: 0,
+    ...(candidate.matchedForm === 'japanese-normalized' ? { notes: [`词典表记：${candidate.surface}`, `日文字形归一化后命中：${candidate.source ?? 'unknown'}`] } : {}),
   }));
 }
 
-export function convertToReadingCandidates(input: string, mode: ReadingMode = 'auto'): ConvertResult {
+export function convertToReadingCandidates(input: string): ConvertResult {
   const normalizedInput = normalizeInput(input);
   const japaneseForm = toJapaneseForm(normalizedInput);
-  const wordCandidates = lookupWordReadings(normalizedInput, japaneseForm, mode);
+  const wordCandidates = lookupWordReadings(normalizedInput, japaneseForm);
   const originalChars = Array.from(normalizedInput);
   const japaneseChars = Array.from(japaneseForm);
   const characters: CharacterReadingResult[] = japaneseChars.map((char, index) => {
-    const candidates = lookupKanjiReadings(char, mode);
+    const candidates = lookupKanjiReadings(char);
     return {
       originalChar: originalChars[index] ?? char,
       normalizedChar: char,

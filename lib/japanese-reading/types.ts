@@ -2,13 +2,9 @@ export type ReadingType =
   | 'on'
   | 'kun'
   | 'nanori'
-  | 'word'
   | 'place'
   | 'person'
-  | 'custom'
   | 'unknown';
-
-export type ReadingMode = 'auto' | 'place' | 'person' | 'free';
 
 export interface KanjiReadingData {
   on?: string[];
@@ -39,6 +35,7 @@ export interface WordReadingCandidate {
   label: string;
   priority: number;
   source?: string;
+  matchedForm?: 'original' | 'japanese-normalized';
   romaji?: string;
 }
 
@@ -64,17 +61,11 @@ export interface ReadingCombinationCandidate {
   romaji: string;
   label: string;
   priority: number;
-  source: 'dictionary' | 'direct' | 'phonetic-rule';
+  source: 'dictionary' | 'direct';
+  evidence: 'dictionary-exact' | 'dictionary-normalized' | 'direct' | 'rendaku';
   notes: string[];
   originalChars?: string[];
   readingTypes?: ReadingType[];
   displayReadings?: string[];
   surfaceReadings?: string[];
-  voicingPositions?: number[];
-  voicedOriginalChars?: string[];
-  semiVoicingPositions?: number[];
-  priorFeatureTags?: string[];
-  selectedMatchCount: number;
-  manualSelectedMatchCount: number;
-  rankerScore?: number;
 }
