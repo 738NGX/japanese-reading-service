@@ -10,9 +10,10 @@
     "build": "vite build",
     "start": "tsx server/index.ts",
     "lint": "eslint src server lib --ignore-pattern dist",
-    "test": "node --import tsx --test tests/api.test.ts"
+    "test": "node --import tsx --test tests/api.test.ts tests/romanize.test.ts"
   },
   "dependencies": {
+    "@lazy-cjk/japanese": "^1.2.37",
     "@types/opencc-js": "^1.0.3",
     "opencc-js": "^1.4.1",
     "react": "19.2.6",
