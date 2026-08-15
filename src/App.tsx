@@ -1,4 +1,5 @@
 import { FormEvent, useState } from 'react';
+import { joinRomajiParts } from '@/lib/japanese-reading/romanize';
 import type { ConvertResult, KanjiReadingCandidate, ReadingCombinationCandidate } from '@/lib/japanese-reading/types';
 
 type ApiResult = ConvertResult & {
@@ -66,27 +67,27 @@ function Results({ result, selectedKeys, previewOverride, onSelect, onApplyRenda
   const selectedCandidates = result.characters.map((character, index) => character.candidates.find((candidate) => candidateKey(candidate) === selectedKeys[index])).filter((candidate): candidate is KanjiReadingCandidate => Boolean(candidate));
   const hasCompleteSelection = selectedCandidates.length === result.characters.length;
   const selectedReading = selectedCandidates.map((candidate) => candidate.surfaceReading).join('');
-  const selectedRomaji = selectedCandidates.map((candidate) => candidate.romaji ?? '').join('');
+  const selectedRomaji = joinRomajiParts(selectedCandidates.map((candidate) => candidate.romaji ?? ''));
   const hasDictionaryEvidence = result.exactDictionaryCandidates.length + result.normalizedDictionaryCandidates.length > 0;
   const preview = previewOverride ?? (hasCompleteSelection ? { reading: selectedReading, romaji: selectedRomaji, label: '手动逐字直拼', notes: selectedCandidates.map((candidate) => candidate.reading) } : null);
 
   return <section className="results">
     {result.normalizedForms.length > 1 ? <p className="conversion">字形转换：<b>{result.normalizedForms[0]}</b> ⇒ <b>{result.normalizedForms[1]}</b></p> : null}
     <p className="source-scope">资料范围：JMnedict 本地快照在此仅提供日语地名表记与读音；未保留释义、地域或原始条目 ID，同形条目不能在本页面内消歧。<a href="https://www.edrdg.org/enamdict/enamdict_doc.html" target="_blank" rel="noreferrer">数据说明</a> · <a href="https://www.edrdg.org/edrdg/licence.html" target="_blank" rel="noreferrer">许可与署名</a></p>
-    {result.exactDictionaryCandidates.length > 0 ? <CandidateGroup title="原表记的外部词典记录" hint="证据等级：已记录。相同表记的多条读音可能属于不同实体。" candidates={result.exactDictionaryCandidates} /> : null}
-    {result.normalizedDictionaryCandidates.length > 0 ? <CandidateGroup title="字形归一化后的词典检索线索" hint="证据等级：检索线索。转换后的同形表记可能属于其他实体，不能当作原输入的确定读音。" candidates={result.normalizedDictionaryCandidates} /> : null}
+    {result.exactDictionaryCandidates.length > 0 ? <CandidateGroup title="原表记的外部词典记录" hint="可信度：已记录。相同表记的多条读音可能属于不同实体。" candidates={result.exactDictionaryCandidates} /> : null}
+    {result.normalizedDictionaryCandidates.length > 0 ? <CandidateGroup title="字形归一化后的词典检索线索" hint="可信度：检索线索。转换后的同形表记可能属于其他实体，不能当作原输入的确定读音。" candidates={result.normalizedDictionaryCandidates} /> : null}
     <details className="exploration" open={!hasDictionaryEvidence}>
-      <summary>单字探索（未证实）</summary>
-      <p className="hint">以下只基于 KANJIDIC2 的单字条目，不会因上方已有词典记录而改变其证据等级。</p>
-      {result.directCandidates.length > 0 ? <CandidateGroup title="逐字直拼" hint="证据等级：单字推测。" candidates={result.directCandidates} /> : <p className="hint">外部单字词典中没有可用于直拼的读音记录。</p>}
-      {result.rendakuCandidates.length > 0 ? <CandidateGroup title="连浊可能变体" hint="证据等级：音系推测。只满足保守条件，不包含构词语义分析；可应用到下方的逐字预览。" candidates={result.rendakuCandidates} onApply={onApplyRendaku} /> : null}
+      <summary>单字候选预测</summary>
+      <p className="hint">基于 KANJIDIC2 的单字条目推理的参考候选结果。</p>
+      {result.directCandidates.length > 0 ? <CandidateGroup title="逐字直拼" hint="可信度：单字推测。" candidates={result.directCandidates} /> : <p className="hint">外部单字词典中没有可用于直拼的读音记录。</p>}
+      {result.rendakuCandidates.length > 0 ? <CandidateGroup title="连浊可能变体" hint="可信度：音系推测。只满足保守条件，不包含构词语义分析；可应用到下方的逐字预览。" candidates={result.rendakuCandidates} onApply={onApplyRendaku} /> : null}
     </details>
     <section className="preview" aria-live="polite">
       <h2>当前逐字预览</h2>
       {preview ? <article className="candidate selected-result"><span>{previewOverride ? '连浊预览' : '手动直拼'}</span><strong>{preview.reading}</strong><small>{preview.romaji}</small><p>{previewOverride ? preview.notes.at(-1) : preview.notes.join(' + ')}</p></article> : <p className="hint">请为每个字选择读音，或从“连浊可能变体”中应用一项预览。</p>}
     </section>
     <h2>逐字读音候选</h2>
-    <p className="hint">点击读音只会更新这一条逐字预览；不会重排或改写词典记录。</p>
+    <p className="hint">如果以上候选没有需要的结果，可以从各字读音中依次选择组合成拼接结果。</p>
     <div className="characters">{result.characters.map((character, index) => <article key={`${character.originalChar}-${index}`}><h3>{character.originalChar}{character.normalizedChar !== character.originalChar ? <em> ⇒ {character.normalizedChar}</em> : null}</h3>{character.candidates.slice(0, 8).map((candidate) => <button type="button" className={selectedKeys[index] === candidateKey(candidate) ? 'reading selected' : 'reading'} key={`${candidate.type}-${candidate.reading}`} onClick={() => onSelect(index, candidate)}><b>{candidate.reading}</b><small>{candidate.label}</small></button>)}</article>)}</div>
   </section>;
 }
